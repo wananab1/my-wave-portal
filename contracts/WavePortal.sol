@@ -21,6 +21,9 @@ contract WavePortal {
 	// 送られてきた全てのwaveを保存する配列
 	Wave[] waves;
 
+	// アドレスと最後にwaveを送った時間をマッピング
+	mapping(address => uint256) public lastWavedAt;
+
 	constructor() payable {
 		console.log("I AM SMART CONTRACT. POG.");
 		// seedの初期化
@@ -28,6 +31,13 @@ contract WavePortal {
 	}
 
 	function wave(string memory _message) public {
+		// 最後のwaveから15分以上経過しているか
+		require(
+			lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
+			"Wait 15m"
+		);
+		lastWavedAt[msg.sender] = block.timestamp;
+
 		totalWaves += 1;
 		console.log("%s has waved!", msg.sender);
 
@@ -35,6 +45,7 @@ contract WavePortal {
 
 		// 次のユーザーのための乱数生成
 		seed = (block.timestamp + block.difficulty) % 100;
+		console.log("Random # generated: %d", seed);
 
 		if(seed <= 50) {
 			console.log("%s won!", msg.sender);
